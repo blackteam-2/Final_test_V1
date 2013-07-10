@@ -114,11 +114,13 @@ void setup(void)
   {
     radio.openWritingPipe(pipes[0]);
     radio.openReadingPipe(1,pipes[1]);
+    digitalWrite(LEDG, HIGH);
   }
   else
   {
     radio.openWritingPipe(pipes[1]);
     radio.openReadingPipe(1,pipes[0]);
+    digitalWrite(LEDO, HIGH);
   }
   
   radio.startListening();
@@ -130,8 +132,8 @@ void setup(void)
   delay(2000);
   
   digitalWrite(13, HIGH);
-  digitalWrite(buzzer, HIGH);
-  delay(20);
+//  digitalWrite(buzzer, HIGH);
+//  delay(20);
   timer5(duty);
   delay(2000);
   digitalWrite(13, LOW);
@@ -268,7 +270,7 @@ void loop(void)
 //=================================================================================
 
 
-//Check the input data array Against checksum
+//Check the input data array is sensical 
 boolean checkData(void)
 {
   for(i = 0 ; i <= 15 ; i++)
@@ -295,6 +297,7 @@ boolean checkData(void)
 void sendData()
 {
   boolean done = false;
+  //Packet name
   int tempa = radioA.myints[0];
   tempa++;
   if(tempa > 800)
@@ -302,6 +305,7 @@ void sendData()
     tempa = 0;
   }
   radioA.myints[0] = tempa;
+  
   radioA.myints[14] = 0;
   
   radio.stopListening();
@@ -323,7 +327,7 @@ void updateTic()
   lcd.print(radioA.myints[3]);
 }
 
-//
+//Update the timer display on the LCD
 void updateTimer()
 {
   lcd.setCursor(0, 1);
@@ -342,6 +346,11 @@ void updateTimer()
   }
 }
 
+//Start/Stop timer 5 at a set duty cycle
+//
+// 0 - Stop the timer
+// 1 - 255 Duty cycle
+//
 void timer5(int j)
 {
   if(j == 0)
