@@ -52,15 +52,17 @@ boolean tempbool = false;
 int transFail = 0;
 int i = 0;
 int resendID = 0;
+unsigned long timerOld = 0;
+unsigned long timerTemp = 0;
 
 
 //-----------Adjustment variables------------------
 
-int ticketStart = 80;
-int duty = 250;
+int ticketStart = 80; //The number of tickets to start with
+int duty = 250; // Dutycycle for teh buzzer (0-255)
 unsigned long timerMax = 30; //in min
 unsigned long timerStep = 30; //in Sec
-unsigned long timerOld = 0;
+unsigned long buttTimer = 2; //in Sec
 
 
 //=================================================================================
@@ -88,25 +90,31 @@ void setup(void)
     role = role_ping_out;
   else
     role = role_pong_back;
-    
+  
+  //Initilise data array  
   for(i = 0 ; i < 15 ; i++)
   {
     radioA_in.myints[i] = 0;
     radioA.myints[i] = 0;
   }
   
+  //Set starting tickets
   radioA.myints[2] = ticketStart;
   radioA.myints[3] = ticketStart;
   
+  //Set up variables for use with timer
   timerMax = timerMax * 60 * 1000;
   timerStep = timerStep * 1000;
+  buttTimer = buttTimer * 1000;
 
+  //Set up serial comunication for debugging
   Serial.begin(57600);
   Serial.write("\n\rRF24/examples/pingpair/\n\r");
   Serial.write("ROLE:");
   Serial.write(role_friendly_name[role]);
   Serial.write("\n\r");
-
+  
+  //Set up the radio and role of the station
   radio.begin();
   radio.setRetries(20,15);
   radio.setPayloadSize(16);
@@ -126,7 +134,10 @@ void setup(void)
   radio.startListening();
   radio.printDetails();
   
+  //Initilise the LCD
   lcd.begin(16, 2);
+  
+  //Display inital start up screen and tests
   lcd.clear();
   lcd.print("BF3 station test");
   delay(2000);
@@ -174,10 +185,17 @@ void loop(void)
   //------------------Inputs--------------------------
   if((digitalRead(spawnButt) == HIGH) && (lck == false))
   {
-    if(role == role_ping_out)
-      radioA.myints[2]--;
-    else
-      radioA.myints[3]--;
+    timerTemp = millis();
+    while(digitalRead(spawnButt) == HIGH){//Do nothing
+    }
+    
+    if((millis() - timerTemp) > buttTimer)
+    {
+      if(role == role_ping_out)
+        radioA.myints[2]--;
+      else
+        radioA.myints[3]--;
+    }
       
     sendData();
     lck = true;
