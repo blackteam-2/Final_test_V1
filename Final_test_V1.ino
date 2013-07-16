@@ -72,18 +72,20 @@ unsigned long buttTimer = 2; //in Sec
 void setup(void)
 {
   pinMode(buzzer, OUTPUT);
-  digitalWrite(buzzer,LOW);
   pinMode(role_pin, INPUT);
-  digitalWrite(role_pin,HIGH);
   pinMode(13,OUTPUT);
-  digitalWrite(13,LOW);
+  pinMode(spawnButt, INPUT);
   pinMode(LEDG, OUTPUT);
   pinMode(LEDO, OUTPUT);
   pinMode(LEDR, OUTPUT);
+  digitalWrite(buzzer,LOW);
+  digitalWrite(role_pin,HIGH);
+  digitalWrite(13,LOW);
+  digitalWrite(spawnButt, HIGH);
   digitalWrite(LEDG, LOW);
   digitalWrite(LEDO, LOW);
   digitalWrite(LEDR, LOW);
-  delay(20); 
+  delay(200); 
   
   // read the address pin, establish our role
   if (digitalRead(role_pin))
@@ -118,6 +120,10 @@ void setup(void)
   radio.begin();
   radio.setRetries(20,15);
   radio.setPayloadSize(16);
+  //Set radio up for high power long distance transmition 
+  radio.setPALevel(RF24_PA_HIGH);
+  radio.setDataRate(RF24_250KBPS);
+  
   if ( role == role_ping_out )
   {
     radio.openWritingPipe(pipes[0]);
@@ -207,7 +213,7 @@ void loop(void)
   }
   
   //-------------------Timer-----------------------
-  if(digitalRead(role_pin) == HIGH)
+  if(role == role_ping_out)
   {
      if((millis() - timerOld) >= timerStep)
      {
@@ -221,7 +227,7 @@ void loop(void)
   }
   
   //------------Check win comditions----------------
-  if(digitalRead(role_pin) == HIGH)
+  if(role == role_ping_out)//only for timer check
   {
     if(millis() >= timerMax)
     {
